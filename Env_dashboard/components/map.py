@@ -5,7 +5,7 @@ Module de création de la carte - Version sans geemap
 import folium
 import streamlit as st
 from streamlit_folium import folium_static
-from ..utils import add_polygon_to_map, get_polygon_bounds
+from utils.geometry import add_polygon_to_map, get_polygon_bounds
 
 
 def create_map(session_state, lat, lon):
@@ -21,7 +21,7 @@ def create_map(session_state, lat, lon):
         folium.Map: Carte Folium
     """
     # Déterminer le centre et le zoom
-    if session_state.polygon_bounds:
+    if session_state.polygon_bounds and session_state.polygon_bounds[0] is not None:
         center_lat, center_lon, zoom = session_state.polygon_bounds
     else:
         center_lat, center_lon, zoom = lat, lon, 7
