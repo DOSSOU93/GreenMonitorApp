@@ -14,7 +14,7 @@ geopandas>=0.13.0
 shapely>=2.1.0
 folium>=0.20.0
 streamlit-folium==0.11.0
-box2==0.7.4
+box==6.0.1
 
 # Base data science
 numpy>=1.25
