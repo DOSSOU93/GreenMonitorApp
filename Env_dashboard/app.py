@@ -85,30 +85,16 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --------------------------
-# Initialisation Earth Engine
+# Initialisation
 # --------------------------
-with st.spinner("🔄 Initialisation de Google Earth Engine..."):
-    try:
-        engine = load_engine()
-        if engine is None or engine is False:
-            st.error("""
-            ❌ Impossible de charger Google Earth Engine
-            
-            **Pour l'environnement local :**
-            1. Ouvrez un terminal
-            2. Exécutez : `earthengine authenticate`
-            3. Redémarrez l'application
-            
-            **Pour Streamlit Cloud :**
-            1. Vérifiez que les secrets sont configurés
-            2. Assurez-vous que le compte de service a accès à Earth Engine
-            """)
-            st.stop()
-        else:
-            st.success("✅ Google Earth Engine initialisé avec succès !")
-    except Exception as e:
-        st.error(f"❌ Erreur Earth Engine: {str(e)[:200]}")
+try:
+    engine = load_engine()
+    if engine is None:
+        st.error("❌ Impossible de charger Google Earth Engine")
         st.stop()
+except Exception as e:
+    st.error(f"❌ Erreur Earth Engine: {str(e)}")
+    st.stop()
 
 # Session state
 if 'polygon_coords' not in st.session_state:
