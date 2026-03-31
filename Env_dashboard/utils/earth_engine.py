@@ -1,80 +1,58 @@
 # utils/earth_engine.py
 """
-Fonctions pour interagir avec Earth Engine
+Initialisation et fonctions Earth Engine
 """
 import ee
 import streamlit as st
-from processor import SpatialProcessor
 
 
-@st.cache_resource
 def load_engine():
-    """Charge le moteur Earth Engine"""
-    return SpatialProcessor()
-
-
-def get_geotiff_url(image, geometry, filename, scale=10):
-    """Génère l'URL de téléchargement GeoTIFF"""
+    """
+    Charge et initialise Google Earth Engine
+    Gère à la fois l'authentification locale et Streamlit Cloud
+    """
+    # Vérifier si déjà initialisé
     try:
-        url = image.getDownloadURL({
-            'scale': scale,
-            'region': geometry,
-            'format': 'GeoTIFF',
-            'name': filename
-        })
-        return url
-    except Exception as e:
-        st.error(f"Erreur URL: {e}")
-        return None
-
-
-def calculate_change(img1, img2):
-    """Calcule le changement entre deux images"""
-    try:
-        change = img2.subtract(img1).rename('change')
-        return change
+        ee.Initialize()
+        return True
     except:
-        return None
-
-
-def get_satellite_image(geometry, sensor_config, year, month=None, annual=False, cloud_threshold=20):
-    """Récupère une image satellite avec un seuil de nuages personnalisable"""
+        pass
+    
+    # Pour Streamlit Cloud avec secrets
     try:
-        if annual:
-            start_date = f"{year}-01-01"
-            end_date = f"{year}-12-31"
-        else:
-            start_date = f"{year}-{month:02d}-01"
-            end_date = f"{year}-{month:02d}-28"
-        
-        if sensor_config["name"] == "MODIS":
-            collection = ee.ImageCollection(sensor_config["collection"]) \
-                .filterBounds(geometry) \
-                .filterDate(start_date, end_date)
-            
-            size = collection.size().getInfo()
-            if size == 0:
-                return None, None
-            
-            image = collection.median().clip(geometry)
-            ndvi = image.select('NDVI').rename('NDVI')
-            ndvi = ndvi.multiply(0.0001)
-            return ndvi, image
-        
-        else:
-            collection = ee.ImageCollection(sensor_config["collection"]) \
-                .filterBounds(geometry) \
-                .filterDate(start_date, end_date)
-            
-            if sensor_config["cloud_filter"]:
-                collection = collection.filter(ee.Filter.lt(sensor_config["cloud_filter"], cloud_threshold))
-            
-            size = collection.size().getInfo()
-            if size == 0:
-                return None, None
-            
-            image = collection.median().clip(geometry)
-            return image, None
-            
+        if st.secrets and "earth_engine" in st.secrets:
+            # Récupérer les informations du compte de service
+            if "client_email" in st.secrets["earth_engine"] and "private_key" in st.secrets["earth_engine"]:
+                service_account = st.secrets["earth_engine"]["client_email"]
+                private_key = st.secrets["earth_engine"]["private_key"]
+                
+                credentials = ee.ServiceAccountCredentials(service_account, key_data=private_key)
+                ee.Initialize(credentials)
+                return True
     except Exception as e:
-        return None, None
+        pass
+    
+    # Pour l'environnement local
+    try:
+        ee.Initialize()
+        return True
+    except Exception as e:
+        st.error(f"""
+        ❌ Erreur d'authentification Earth Engine: {str(e)[:150]}
+        
+        **Pour l'environnement local :**
+        1. Ouvrez un terminal
+        2. Exécutez : `earthengine authenticate`
+        3. Redémarrez l'application
+        
+        **Pour Streamlit Cloud :**
+        1. Allez dans "Manage app" → "Secrets"
+        2. Ajoutez les secrets suivants :
+        
+        [earth_engine]
+        client_email = "votre-service-account@projet.iam.gserviceaccount.com"
+        private_key = "-----BEGIN PRIVATE KEY-----\\n...\\n-----END PRIVATE KEY-----\\n"
+        
+        3. Redéployez l'application
+        """)
+        return None
