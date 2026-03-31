@@ -1,11 +1,11 @@
 # Streamlit et interface
 streamlit==1.55.0
-rich>=14.3.3
-markdown-it-py>=4.0.0
-mdurl>=0.1.2
-pygments>=2.20.0
+rich==14.3.3
+markdown-it-py==4.0.0
+mdurl==0.1.2
+pygments==2.20.0
 
-# Cartographie / géospatial (versions précompilées pour Linux)
+# Cartographie et géospatial (versions précompilées pour Streamlit Cloud)
 geemap>=0.20.0
 earthengine-api>=0.1.349
 folium>=0.20.0
@@ -13,7 +13,7 @@ geopandas>=0.13.0
 shapely>=2.0.0
 fiona>=1.9.0
 
-# Autres dépendances nécessaires
+# Bibliothèques de base
 numpy>=1.25
 pandas>=2.1
 matplotlib>=3.8
